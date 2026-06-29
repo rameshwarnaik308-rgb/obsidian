@@ -12,13 +12,13 @@ export default function AICoach({ profile }) {
     setMessages(m => [...m, { role: 'user', content: msg }])
     setInput(''); setLoading(true)
     try {
-      const res = await fetch('https://cphhdswvrmcysvfytdyr.supabase.co/functions/v1/ai-chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: msg })
       })
       const data = await res.json()
-      setMessages(m => [...m, { role: 'assistant', content: data.reply || 'Error connecting.' }])
+      setMessages(m => [...m, { role: 'assistant', content: data.reply || 'Error.' }])
     } catch(e) {
       setMessages(m => [...m, { role: 'assistant', content: 'Error: ' + e.message }])
     }

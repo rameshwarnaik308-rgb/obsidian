@@ -12,23 +12,13 @@ export default function AICoach({ profile }) {
     setMessages(m => [...m, { role: 'user', content: msg }])
     setInput(''); setLoading(true)
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('https://cphhdswvrmcysvfytdyr.supabase.co/functions/v1/ai-chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-request-header': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-20240307',
-          max_tokens: 500,
-          system: 'You are OBSIDIAN AI, a forensic trading coach. Be direct. Give one concrete action at the end. Max 150 words.',
-          messages: [{ role: 'user', content: msg }]
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ message: msg })
       })
       const data = await res.json()
-      setMessages(m => [...m, { role: 'assistant', content: data.content?.[0]?.text || 'Error: ' + JSON.stringify(data) }])
+      setMessages(m => [...m, { role: 'assistant', content: data.reply || 'Error connecting.' }])
     } catch(e) {
       setMessages(m => [...m, { role: 'assistant', content: 'Error: ' + e.message }])
     }

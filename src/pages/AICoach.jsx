@@ -12,15 +12,25 @@ export default function AICoach({ profile }) {
     setMessages(m => [...m, { role: 'user', content: msg }])
     setInput(''); setLoading(true)
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${import.meta.env.VITE_GROQ_KEY}` },
-        body: JSON.stringify({ model: 'llama3-8b-8192', messages: [{ role: 'system', content: 'You are OBSIDIAN AI, a forensic trading coach. Be direct and give one concrete action at the end. Keep responses under 200 words.' }, { role: 'user', content: msg }] })
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-request-header': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-20240307',
+          max_tokens: 500,
+          system: 'You are OBSIDIAN AI, a forensic trading coach. Be direct. Give one concrete action at the end. Max 150 words.',
+          messages: [{ role: 'user', content: msg }]
+        })
       })
       const data = await res.json()
-      setMessages(m => [...m, { role: 'assistant', content: data.choices?.[0]?.message?.content || 'Error connecting.' }])
+      setMessages(m => [...m, { role: 'assistant', content: data.content?.[0]?.text || 'Error: ' + JSON.stringify(data) }])
     } catch(e) {
-      setMessages(m => [...m, { role: 'assistant', content: 'Error. Add VITE_GROQ_KEY in Vercel.' }])
+      setMessages(m => [...m, { role: 'assistant', content: 'Error: ' + e.message }])
     }
     setLoading(false)
   }
@@ -43,7 +53,7 @@ export default function AICoach({ profile }) {
             </div>
           ) : messages.map((m,i) => (
             <div key={i} style={{marginBottom:20,display:'flex',justifyContent:m.role==='user'?'flex-end':'flex-start'}}>
-              <div style={{maxWidth:'75%',background:m.role==='user'?'#e83a2e':'#1a1a1a',padding:'12px 16px',borderRadius:12,fontSize:14,lineHeight:1.6}}>{m.content}</div>
+              <div style={{maxWidth:'75%',background:m.role==='user'?'#e83a2e':'#1a1a1a',padding:'12px 16px',borderRadius:12,fontSize:14,lineHeight:1.6,color:'#f0f0f0'}}>{m.content}</div>
             </div>
           ))}
           {loading && <div style={{color:'#555',fontSize:13,padding:8}}>OBSIDIAN AI is analyzing...</div>}
